@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "147849544393",
+    "project_id": "stadium-8bcb4",
+    "storage_bucket": "stadium-8bcb4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:147849544393:android:eb672ea36d75e2ac37c318",
+        "android_client_info": {
+          "package_name": "ru.study.stadium"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "147849544393-hj5njiuo7evcgi04b89gh03f6fjqpu4s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMhvJBNCD3eZbbKan83uuhXWDIR_-rdYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "147849544393-hj5njiuo7evcgi04b89gh03f6fjqpu4s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

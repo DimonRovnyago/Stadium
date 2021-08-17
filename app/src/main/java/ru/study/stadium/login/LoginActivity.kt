@@ -5,6 +5,7 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.util.Log.INFO
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -12,9 +13,19 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ru.study.stadium.MainActivity
 import ru.study.stadium.R
-import ru.study.stadium.login.SignupActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.AuthResult
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.ktx.database
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+
 
 class LoginActivity : AppCompatActivity() {
+
+    private lateinit var auth: FirebaseAuth
+    var valid = true
 
     var _emailText: EditText? = null
     var _passwordText: EditText? = null
@@ -24,6 +35,8 @@ class LoginActivity : AppCompatActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        auth = Firebase.auth
 
         _loginButton = findViewById(R.id.btn_login) as Button
         _signupLink = findViewById(R.id.link_signup) as TextView
@@ -101,7 +114,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     fun validate(): Boolean {
-        var valid = true
+
 
         val email = _emailText!!.text.toString()
         val password = _passwordText!!.text.toString()
@@ -113,6 +126,7 @@ class LoginActivity : AppCompatActivity() {
             _emailText!!.error = null
         }
 
+        //проверка пароля на длину
         if (password.isEmpty() || password.length < 4 || password.length > 10) {
             _passwordText!!.error = "between 4 and 10 alphanumeric characters"
             valid = false
@@ -120,8 +134,15 @@ class LoginActivity : AppCompatActivity() {
             _passwordText!!.error = null
         }
 
-        if(email == "admin@mail.ru" && password == "admin") valid = true
-        else valid = false
+        //проверка по базе
+        if(valid) {
+            val result = auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
+                Log.d(TAG, (task.isSuccessful).toString())
+                Log.d(TAG, "____________________________")
+                })
+            valid = result.isSuccessful
+            Log.d(TAG, result.isSuccessful.toString())
+        }
 
         return valid
     }
@@ -130,4 +151,18 @@ class LoginActivity : AppCompatActivity() {
         private val TAG = "LoginActivity"
         private val REQUEST_SIGNUP = 0
     }
+
+    override fun onStart() {
+        super.onStart()
+
+        // Check if user is signed in (non-null) and update UI accordingly.
+        val currentUser = auth.currentUser
+
+        Log.d(TAG, "User is ${currentUser.toString()}")
+
+        if(currentUser != null) startActivity(Intent(this, MainActivity::class.java))
+    }
+
+
+
 }

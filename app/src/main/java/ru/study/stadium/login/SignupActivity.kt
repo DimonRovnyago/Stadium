@@ -11,8 +11,22 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ru.study.stadium.MainActivity
 import ru.study.stadium.R
+import com.google.firebase.auth.FirebaseUser
+
+import com.google.firebase.auth.AuthResult
+
+import androidx.annotation.NonNull
+import androidx.fragment.app.FragmentActivity
+
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+
 
 class SignupActivity : AppCompatActivity() {
+
+    private lateinit var auth: FirebaseAuth
 
     var _nameText: EditText? = null
     var _addressText: EditText? = null
@@ -26,6 +40,8 @@ class SignupActivity : AppCompatActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
+
+        auth = Firebase.auth
 
         _nameText = findViewById(R.id.input_name) as EditText
         _addressText = findViewById(R.id.input_address) as EditText
@@ -108,6 +124,7 @@ class SignupActivity : AppCompatActivity() {
         val password = _passwordText!!.text.toString()
         val reEnterPassword = _reEnterPasswordText!!.text.toString()
 
+        /*
         if (name.isEmpty() || name.length < 3) {
             _nameText!!.error = "at least 3 characters"
             valid = false
@@ -122,19 +139,19 @@ class SignupActivity : AppCompatActivity() {
             _addressText!!.error = null
         }
 
+        if (mobile.isEmpty() || mobile.length != 10) {
+            _mobileText!!.error = "Enter Valid Mobile Number"
+            valid = false
+        } else {
+            _mobileText!!.error = null
+        }
+        */
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             _emailText!!.error = "enter a valid email address"
             valid = false
         } else {
             _emailText!!.error = null
-        }
-
-        if (mobile.isEmpty() || mobile.length != 10) {
-            _mobileText!!.error = "Enter Valid Mobile Number"
-            valid = false
-        } else {
-            _mobileText!!.error = null
         }
 
         if (password.isEmpty() || password.length < 4 || password.length > 10) {
@@ -149,6 +166,24 @@ class SignupActivity : AppCompatActivity() {
             valid = false
         } else {
             _reEnterPasswordText!!.error = null
+        }
+
+        if(valid) {
+            FirebaseAuth.getInstance()
+                .createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        // Sign in success, update UI with the signed-in user's information
+                        Log.d(TAG, "signInWithEmail:success")
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        Log.w(TAG, "signInWithEmail:failure", task.exception)
+                        Toast.makeText(baseContext, "Authentication failed.",
+                            Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            if(valid) Log.d(TAG, "created new User")
         }
 
         return valid
