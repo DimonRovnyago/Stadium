@@ -114,11 +114,12 @@ class LoginActivity : AppCompatActivity() {
     }
 
     fun validate(): Boolean {
-
+        valid = true
 
         val email = _emailText!!.text.toString()
         val password = _passwordText!!.text.toString()
 
+        //проверка на почту
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             _emailText!!.error = "enter a valid email address"
             valid = false
@@ -127,8 +128,8 @@ class LoginActivity : AppCompatActivity() {
         }
 
         //проверка пароля на длину
-        if (password.isEmpty() || password.length < 4 || password.length > 10) {
-            _passwordText!!.error = "between 4 and 10 alphanumeric characters"
+        if (password.isEmpty() || password.length < 6) {
+            _passwordText!!.error = "6 or more characters"
             valid = false
         } else {
             _passwordText!!.error = null
@@ -141,7 +142,7 @@ class LoginActivity : AppCompatActivity() {
                 Log.d(TAG, "____________________________")
                 })
             valid = result.isSuccessful
-            Log.d(TAG, result.isSuccessful.toString())
+            //Log.d(TAG, result.isSuccessful.toString())
         }
 
         return valid
