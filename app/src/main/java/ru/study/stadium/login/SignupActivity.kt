@@ -31,9 +31,7 @@ class SignupActivity : AppCompatActivity() {
     val db = Firebase.firestore
 
     var _nameText: EditText? = null
-    var _addressText: EditText? = null
     var _emailText: EditText? = null
-    var _mobileText: EditText? = null
     var _passwordText: EditText? = null
     var _reEnterPasswordText: EditText? = null
     var _signupButton: Button? = null
@@ -94,7 +92,12 @@ class SignupActivity : AppCompatActivity() {
                 _signupButton!!.isEnabled = false
 
                 //добавляем имя и email в базу
-                val user = hashMapOf("email" to email, "name" to name, "photo" to "https://png.pngtree.com/element_our/20190604/ourlarge/pngtree-user-avatar-boy-image_1482937.jpg")
+                val user = hashMapOf(
+                    "email" to email,
+                    "name" to name,
+                    "photo" to "no",
+                    "ship_bull_speed" to 500
+                )
                 db.collection("users")
                     .document(email)
                     .set(user)

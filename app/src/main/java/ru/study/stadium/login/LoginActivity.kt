@@ -51,7 +51,7 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(applicationContext, SignupActivity::class.java)
             startActivityForResult(intent, REQUEST_SIGNUP)
             finish()
-            //                overridePendingTransition(com.kotlindroider.devaj.R.anim.push_left_in, com.kotlindroider.devaj.R.anim.push_left_out);
+            overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
         }
     }
 
@@ -116,8 +116,9 @@ class LoginActivity : AppCompatActivity() {
 
     fun onLoginSuccess() {
         _loginButton!!.isEnabled = true
-//        finish()
+        finish()
         startActivity(Intent(this, MainActivity::class.java))
+        overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
     }
 
     fun onLoginFailed() {
@@ -167,6 +168,7 @@ class LoginActivity : AppCompatActivity() {
         Log.d(TAG, "User is ${currentUser.toString()}")
 
         if(currentUser != null) startActivity(Intent(this, MainActivity::class.java))
+        overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
     }
 
 

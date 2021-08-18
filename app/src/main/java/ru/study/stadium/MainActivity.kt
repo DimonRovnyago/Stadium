@@ -1,17 +1,21 @@
 package ru.study.stadium
 
+import android.content.Intent
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.net.toUri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import org.json.JSONArray
 import org.json.JSONObject
+import ru.study.stadium.login.LoginActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,7 +34,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         profilePhotoImage = findViewById(R.id.profilePhotoImage) as ImageView
-        nameText = findViewById(R.id.nameText) as TextView
+        nameText = findViewById(R.id.nameText) as TextView;
+        nameText!!.setTextColor(Color.YELLOW)
         signOutButton = findViewById(R.id.signOutButton) as Button
 
         auth = Firebase.auth
@@ -48,6 +53,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d("JSON", photo)
 
                 nameText!!.setText(name)
+                profilePhotoImage!!.setImageResource(R.mipmap.no_avatar)
             }
             .addOnFailureListener {exception ->
                 Log.w(TAG, "Error getting documents.", exception)
@@ -57,6 +63,8 @@ class MainActivity : AppCompatActivity() {
 
         signOutButton!!.setOnClickListener {
             auth.signOut()
+            startActivity(Intent(this, LoginActivity::class.java))
+            overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
         }
 
 

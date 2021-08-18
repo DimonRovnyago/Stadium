@@ -1,9 +1,7 @@
 <resources>
-    <string name="app_name">Kotlin Login Example</string>
-
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Stadium</string>
     <string name="action_settings">Settings</string>
     <string name="create_account">Create Account</string>
     <string name="already_member">Already a member? Log in</string>
-
+    <string name="name_is_loading">Your Name is loading...</string>
 </resources>
