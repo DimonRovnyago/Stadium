@@ -20,12 +20,14 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    var valid = true
 
     var _emailText: EditText? = null
     var _passwordText: EditText? = null
@@ -61,26 +63,37 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        _loginButton!!.isEnabled = false
-
-        val progressDialog = ProgressDialog(this@LoginActivity,
-            R.style.AppTheme_Dark_Dialog)
+        //прогресс логина
+        val progressDialog = ProgressDialog(this@LoginActivity, R.style.AppTheme_Dark_Dialog)
         progressDialog.isIndeterminate = true
         progressDialog.setMessage("Login...")
         progressDialog.show()
 
-        val email = _emailText!!.text.toString()
-        val password = _passwordText!!.text.toString()
 
         // TODO: Implement your own authentication logic here.
 
-        android.os.Handler().postDelayed(
-            {
+
+        val email = _emailText!!.text.toString()
+        val password = _passwordText!!.text.toString()
+
+        //проверка по базе
+        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
+            Log.d(TAG, task.isSuccessful.toString())
+            Log.d(TAG, "_______________________________________________")
+            progressDialog.dismiss()
+            if(task.isSuccessful) {
+                _loginButton!!.isEnabled = false
                 // On complete call either onLoginSuccess or onLoginFailed
                 onLoginSuccess()
-                // onLoginFailed();
-                progressDialog.dismiss()
-            }, 3000)
+            }
+            else {
+                onLoginFailed()
+            }
+        })
+
+
+
+
     }
 
 
@@ -108,13 +121,14 @@ class LoginActivity : AppCompatActivity() {
     }
 
     fun onLoginFailed() {
-        Toast.makeText(baseContext, "Login failed", Toast.LENGTH_LONG).show()
+        Toast.makeText(baseContext, "Login failed\nCheck username and password", Toast.LENGTH_LONG).show()
 
         _loginButton!!.isEnabled = true
     }
 
     fun validate(): Boolean {
-        valid = true
+        var valid = true
+        var tried = false
 
         val email = _emailText!!.text.toString()
         val password = _passwordText!!.text.toString()
@@ -135,21 +149,12 @@ class LoginActivity : AppCompatActivity() {
             _passwordText!!.error = null
         }
 
-        //проверка по базе
-        if(valid) {
-            val result = auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
-                Log.d(TAG, (task.isSuccessful).toString())
-                Log.d(TAG, "____________________________")
-                })
-            valid = result.isSuccessful
-            //Log.d(TAG, result.isSuccessful.toString())
-        }
-
         return valid
     }
 
+
     companion object {
-        private val TAG = "LoginActivity"
+        val TAG = "LoginActivity"
         private val REQUEST_SIGNUP = 0
     }
 

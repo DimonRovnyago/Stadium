@@ -21,12 +21,14 @@ import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 
 class SignupActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    val db = Firebase.firestore
 
     var _nameText: EditText? = null
     var _addressText: EditText? = null
@@ -44,9 +46,7 @@ class SignupActivity : AppCompatActivity() {
         auth = Firebase.auth
 
         _nameText = findViewById(R.id.input_name) as EditText
-        _addressText = findViewById(R.id.input_address) as EditText
         _emailText = findViewById(R.id.input_email) as EditText
-        _mobileText = findViewById(R.id.input_mobile) as EditText
         _passwordText = findViewById(R.id.input_password) as EditText
         _reEnterPasswordText = findViewById(R.id.input_reEnterPassword) as EditText
 
@@ -68,12 +68,11 @@ class SignupActivity : AppCompatActivity() {
         Log.d(TAG, "Signup")
 
         if (!validate()) {
-            onSignupFailed()
+            onSignupFailed("")
             return
         }
 
-        _signupButton!!.isEnabled = false
-
+        //прогресс регистрации
         val progressDialog = ProgressDialog(this@SignupActivity,
             R.style.AppTheme_Dark_Dialog)
         progressDialog.isIndeterminate = true
@@ -81,22 +80,37 @@ class SignupActivity : AppCompatActivity() {
         progressDialog.show()
 
         val name = _nameText!!.text.toString()
-        val address = _addressText!!.text.toString()
         val email = _emailText!!.text.toString()
-        val mobile = _mobileText!!.text.toString()
         val password = _passwordText!!.text.toString()
         val reEnterPassword = _reEnterPasswordText!!.text.toString()
 
-        // TODO: Implement your own signup logic here.
+        //проверка по базе
+        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
+            Log.d(LoginActivity.TAG, task.isSuccessful.toString())
+            Log.d(LoginActivity.TAG, "_______________________________________________")
+            progressDialog.dismiss()
+            if(task.isSuccessful) {
 
-        android.os.Handler().postDelayed(
-            {
-                // On complete call either onSignupSuccess or onSignupFailed
-                // depending on success
+                _signupButton!!.isEnabled = false
+
+                //добавляем имя и email в базу
+                val user = hashMapOf("email" to email, "name" to name, "photo" to "https://png.pngtree.com/element_our/20190604/ourlarge/pngtree-user-avatar-boy-image_1482937.jpg")
+                db.collection("users")
+                    .document(email)
+                    .set(user)
+                    .addOnSuccessListener { documentReference ->
+                        Log.d(TAG, "DocumentSnapshot added with ID: ${email}")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.w(TAG, "Error adding document", e)
+                    }
+
                 onSignupSuccess()
-                // onSignupFailed();
-                progressDialog.dismiss()
-            }, 3000)
+            }
+            else {
+                onSignupFailed("User with this email already exists")
+            }
+        })
     }
 
 
@@ -108,8 +122,8 @@ class SignupActivity : AppCompatActivity() {
         finish()
     }
 
-    fun onSignupFailed() {
-        Toast.makeText(baseContext, "Login failed", Toast.LENGTH_LONG).show()
+    fun onSignupFailed(error: String) {
+        Toast.makeText(baseContext, "SignUp failed\n${error}", Toast.LENGTH_LONG).show()
 
         _signupButton!!.isEnabled = true
     }
@@ -118,34 +132,17 @@ class SignupActivity : AppCompatActivity() {
         var valid = true
 
         val name = _nameText!!.text.toString()
-        val address = _addressText!!.text.toString()
         val email = _emailText!!.text.toString()
-        val mobile = _mobileText!!.text.toString()
         val password = _passwordText!!.text.toString()
         val reEnterPassword = _reEnterPasswordText!!.text.toString()
 
-        /*
-        if (name.isEmpty() || name.length < 3) {
-            _nameText!!.error = "at least 3 characters"
+
+        if (name.isEmpty()) {
+            _nameText!!.error = "Fill name"
             valid = false
         } else {
             _nameText!!.error = null
         }
-
-        if (address.isEmpty()) {
-            _addressText!!.error = "Enter Valid Address"
-            valid = false
-        } else {
-            _addressText!!.error = null
-        }
-
-        if (mobile.isEmpty() || mobile.length != 10) {
-            _mobileText!!.error = "Enter Valid Mobile Number"
-            valid = false
-        } else {
-            _mobileText!!.error = null
-        }
-        */
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             _emailText!!.error = "enter a valid email address"
@@ -168,28 +165,10 @@ class SignupActivity : AppCompatActivity() {
             _reEnterPasswordText!!.error = null
         }
 
-        if(valid) {
-            FirebaseAuth.getInstance()
-                .createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d(TAG, "signInWithEmail:success")
-                    } else {
-                        // If sign in fails, display a message to the user.
-                        Log.w(TAG, "signInWithEmail:failure", task.exception)
-                        Toast.makeText(baseContext, "Authentication failed.",
-                            Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-            if(valid) Log.d(TAG, "created new User")
-        }
-
         return valid
     }
 
     companion object {
-        private val TAG = "SignupActivity"
+        val TAG = "SignupActivity"
     }
 }
