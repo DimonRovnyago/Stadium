@@ -9,20 +9,16 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import ru.study.stadium.MainActivity
 import ru.study.stadium.R
-import com.google.firebase.auth.FirebaseUser
 
 import com.google.firebase.auth.AuthResult
-
-import androidx.annotation.NonNull
-import androidx.fragment.app.FragmentActivity
 
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import ru.study.stadium.MainActivity
 
 
 class SignupActivity : AppCompatActivity() {
@@ -63,8 +59,9 @@ class SignupActivity : AppCompatActivity() {
     }
 
     fun signup() {
-        Log.d(TAG, "Signup")
+        Log.d(TAG, "Signup started")
 
+        //проверка почты и пароля на корректность
         if (!validate()) {
             onSignupFailed("")
             return
@@ -80,7 +77,6 @@ class SignupActivity : AppCompatActivity() {
         val name = _nameText!!.text.toString()
         val email = _emailText!!.text.toString()
         val password = _passwordText!!.text.toString()
-        val reEnterPassword = _reEnterPasswordText!!.text.toString()
 
         //проверка по базе
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
@@ -92,26 +88,19 @@ class SignupActivity : AppCompatActivity() {
                 _signupButton!!.isEnabled = false
 
                 //добавляем имя и email в базу
-                val user = hashMapOf(
-                    "email" to email,
-                    "name" to name,
-                    "photo" to "no",
-                    "ship_bull_speed" to 500
-                )
                 db.collection("users")
                     .document(email)
-                    .set(user)
-                    .addOnSuccessListener { documentReference ->
-                        Log.d(TAG, "DocumentSnapshot added with ID: ${email}")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.w(TAG, "Error adding document", e)
-                    }
+                    .set(hashMapOf(
+                        "email" to email,
+                        "name" to name,
+                        "photo" to "no",
+                        "ship_bull_speed" to 500
+                    ))
 
                 onSignupSuccess()
             }
             else {
-                onSignupFailed("User with this email already exists")
+                onSignupFailed("\nUser with this email already exists")
             }
         })
     }
@@ -126,11 +115,12 @@ class SignupActivity : AppCompatActivity() {
     }
 
     fun onSignupFailed(error: String) {
-        Toast.makeText(baseContext, "SignUp failed\n${error}", Toast.LENGTH_LONG).show()
+        Toast.makeText(baseContext, "SignUp failed${error}", Toast.LENGTH_LONG).show()
 
         _signupButton!!.isEnabled = true
     }
 
+    //проверка почты и пароля на корректность
     fun validate(): Boolean {
         var valid = true
 

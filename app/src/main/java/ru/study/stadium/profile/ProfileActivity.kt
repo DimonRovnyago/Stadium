@@ -17,7 +17,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import ru.study.stadium.login.LoginActivity
 
-class MainActivity : AppCompatActivity() {
+class ProfileActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     val db = Firebase.firestore
