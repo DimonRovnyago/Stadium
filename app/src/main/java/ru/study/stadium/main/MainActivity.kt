@@ -1,56 +1,69 @@
 package ru.study.stadium
 
-import android.R
-import android.app.ListActivity
+import android.app.ActionBar
 import android.os.Bundle
+import android.app.ListActivity
 import android.view.View
-import android.widget.AdapterView
-import android.widget.AdapterView.OnItemLongClickListener
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.Toast
+import androidx.appcompat.widget.Toolbar
 import java.util.*
+import android.content.Intent
+import android.view.MenuItem
 
-class MainActivity : ListActivity(), OnItemLongClickListener {
-    val games_list = arrayOf(
+
+class MainActivity : ListActivity() {
+    val GamesList = arrayOf(
         "Корабли", "Военная газета", "Скоро",
         "Скоро"
     )
+
+    lateinit var gamesListView: ListView
+    lateinit var toolbar: Toolbar
+
     private var mAdapter: ArrayAdapter<String>? = null
-    private val catNamesList = ArrayList(listOf(*games_list))
+    private val GamesNamesList = ArrayList(listOf(*GamesList))
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setContentView(R.layout.activity_main);
-        mAdapter = ArrayAdapter(
-            this,
-            R.layout.simple_list_item_1, catNamesList
-        )
-        listAdapter = mAdapter
-        listView.onItemLongClickListener = this
+        setContentView(R.layout.activity_main);
+
+        gamesListView = findViewById<ListView>(android.R.id.list) as ListView
+        toolbar = findViewById(R.id.toolbar) as Toolbar
+
+        toolbar.setTitle("Игры")
+        toolbar.setNavigationIcon(resources.getDrawable(R.drawable.back))
+        toolbar.setNavigationOnClickListener(View.OnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        })
+
+
+        mAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, GamesNamesList)
+
+        gamesListView.setAdapter(mAdapter);
     }
 
-    override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-        super.onListItemClick(l, v, position, id)
-        Toast.makeText(
-            applicationContext,
+    override fun onListItemClick(l: ListView, v: View, position: Int, ID: Long) {
+        super.onListItemClick(l, v, position, ID)
+        Toast.makeText(applicationContext,
             "Вы выбрали " + l.getItemAtPosition(position).toString(), Toast.LENGTH_SHORT
         ).show()
     }
 
-    override fun onItemLongClick(
-        parent: AdapterView<*>,
-        view: View,
-        position: Int,
-        id: Long
-    ): Boolean {
-        val selectedItem = parent.getItemAtPosition(position).toString()
-        mAdapter!!.remove(selectedItem)
-        mAdapter!!.notifyDataSetChanged()
-        Toast.makeText(
-            applicationContext,
-            "$selectedItem удалён.",
-            Toast.LENGTH_SHORT
-        ).show()
-        return true
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_back -> {
+            // User chose the "Settings" item, show the app settings UI...
+            startActivity(Intent(this, ProfileActivity::class.java))
+            true
+        }
+
+        else -> {
+            // If we got here, the user's action was not recognized.
+            // Invoke the superclass to handle it.
+            super.onOptionsItemSelected(item)
+        }
     }
+
+
 }

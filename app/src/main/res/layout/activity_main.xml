@@ -4,15 +4,33 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/AppTheme.Dark.Toolbar" />
+    <menu xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <!-- "Mark Favorite", should appear as action button if possible -->
+        <item
+            android:id="@+id/action_back"
+            android:icon="@drawable/back"
+            android:title="Back"
+            app:showAsAction="ifRoom"/>
+
+        <!-- Settings, should always be in the overflow -->
+        <item android:id="@+id/action_settings"
+            android:title="@string/action_settings"
+            app:showAsAction="never"/>
+
+    </menu>
+
     <ListView
         android:id="@android:id/list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <TextView
-        android:id="@android:id/empty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="List is Empty" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </LinearLayout>

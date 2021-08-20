@@ -19,9 +19,9 @@ import java.lang.Math.asin
 
 class ShipWars : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-    val db = Firebase.firestore
+    val firestoreCloudDB = Firebase.firestore
 
-    var TAG = "ShipWarsActivity"
+    var LogTag = "ShipWarsActivity"
 
     //скорости пуль игроков
     var my_bull_speed = 0;
@@ -61,7 +61,7 @@ class ShipWars : AppCompatActivity() {
         }
 
         auth = Firebase.auth
-        db.collection("shipWars")
+        firestoreCloudDB.collection("shipWars")
                 //получаем скорость пули и корабля
             .document(auth.currentUser!!.email.toString())
             .get()
@@ -77,7 +77,7 @@ class ShipWars : AppCompatActivity() {
             }
             .addOnFailureListener {exception ->
                 //ошибка получения данных (если не существуют)
-                Log.w(TAG, "Error getting ship params.", exception)
+                Log.w(LogTag, "Error getting ship params.", exception)
 
                 //запись даннных на сервер
                 setParamsIfNotExist()
@@ -106,7 +106,7 @@ class ShipWars : AppCompatActivity() {
     }
 
     fun setParamsIfNotExist() {
-        db.collection("shipWars")
+        firestoreCloudDB.collection("shipWars")
             .document(auth.currentUser!!.email.toString())
             .set(hashMapOf(
                 "bull_speed" to 500,

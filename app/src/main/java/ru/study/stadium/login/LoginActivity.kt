@@ -20,149 +20,142 @@ import ru.study.stadium.MainActivity
 
 
 class LoginActivity : AppCompatActivity() {
+    //переменные, отвечающих за объекты интерфейса
+    private lateinit var IEmailText: EditText
+    private lateinit var IPasswordText: EditText
+    lateinit var ILoginButton: Button
+    lateinit var ISignupLink: TextView
 
-    private lateinit var auth: FirebaseAuth
+    //переменные почты и пароля
+    private var email = "";
+    private var password = "";
 
-    var _emailText: EditText? = null
-    var _passwordText: EditText? = null
-    var _loginButton: Button? = null
-    var _signupLink: TextView? = null
+    //переменная авторизации Firebase
+    private lateinit var authInFirebase: FirebaseAuth
+
+    //тэг в логах
+    val logTag = "LoginActivity"
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        auth = Firebase.auth
+        //авторизация в Firebase
+        authInFirebase = Firebase.auth
 
-        _loginButton = findViewById(R.id.btn_login) as Button
-        _signupLink = findViewById(R.id.link_signup) as TextView
-        _passwordText = findViewById(R.id.input_password) as EditText
-        _emailText = findViewById(R.id.input_email) as EditText
-        _loginButton!!.setOnClickListener { login() }
+        //инициализация всех объектов
+        ILoginButton = findViewById(R.id.btn_login) as Button
+        ISignupLink = findViewById(R.id.link_signup) as TextView
+        IPasswordText = findViewById(R.id.input_password) as EditText
+        IEmailText = findViewById(R.id.input_email) as EditText
 
-        _signupLink!!.setOnClickListener {
-            // Start the Signup activity
-            val intent = Intent(applicationContext, SignupActivity::class.java)
-            startActivityForResult(intent, REQUEST_SIGNUP)
+        //действие на нажатие на кнопку "Вход"
+        ILoginButton.setOnClickListener { Login() }
+
+        //действие на нажатие на ссылку регистрации
+        ISignupLink.setOnClickListener {
+            //запуск SignupActivity и завершение LoginActivity
+            startActivity(Intent(this, SignupActivity::class.java))
             finish()
+            //анимация запуска SignupActivity
             overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
         }
     }
 
-    fun login() {
-        Log.d(TAG, "Login")
+    //функция логина в приложения
+    private fun Login() {
+        Log.d(logTag, "Login started")
 
-        if (!validate()) {
-            onLoginFailed()
+        //получаем логин и пароль из полей ввода
+        email = IEmailText.text.toString()
+        password = IPasswordText.text.toString()
+
+        //завершаем логин с ошибкой, если почта или пароль некорректные
+        if (!ValidateEmailAndPassword()) {
+            ShowLoginFailed("\nIncorrect email or password")
             return
         }
 
-        //прогресс логина
-        val progressDialog = ProgressDialog(this@LoginActivity, R.style.AppTheme_Dark_Dialog)
-        progressDialog.isIndeterminate = true
-        progressDialog.setMessage("Login...")
-        progressDialog.show()
+        //инициализация прогресс-бара логина
+        val ILoginProgressDialog = ProgressDialog(this, R.style.AppTheme_Dark_Dialog)
+        ILoginProgressDialog.isIndeterminate = true
+        ILoginProgressDialog.setMessage("Login...")
+        ILoginProgressDialog.show()
 
+        //попытка входа по указанной почте и паролю
+        authInFirebase.signInWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { loginResult ->
 
-        // TODO: Implement your own authentication logic here.
+            Log.d(logTag, "Is login successful: ${loginResult.isSuccessful.toString()}")
 
+            //убираем прогресс-бар логина
+            ILoginProgressDialog.dismiss()
 
-        val email = _emailText!!.text.toString()
-        val password = _passwordText!!.text.toString()
-
-        //проверка по базе
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
-            Log.d(TAG, task.isSuccessful.toString())
-            Log.d(TAG, "_______________________________________________")
-            progressDialog.dismiss()
-            if(task.isSuccessful) {
-                _loginButton!!.isEnabled = false
-                // On complete call either onLoginSuccess or onLoginFailed
-                onLoginSuccess()
-            }
-            else {
-                onLoginFailed()
-            }
+            //если логин прошёл успешно
+            if(loginResult.isSuccessful) ShowLoginSuccess()
+            //если логин провалился
+            else ShowLoginFailed("Check email and password")
         })
-
-
-
-
     }
 
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_SIGNUP) {
-            if (resultCode == Activity.RESULT_OK) {
-
-                // TODO: Implement successful signup logic here
-                // By default we just finish the Activity and log them in automatically
-                this.finish()
-            }
-        }
-    }
-
+    //действие при нажатии кнопки назад
     override fun onBackPressed() {
-        // Disable going back to the MainActivity
+        //отключаем возможность запустить MainActivity кнопкой назад
         moveTaskToBack(true)
     }
 
-    fun onLoginSuccess() {
-        _loginButton!!.isEnabled = true
-        finish()
+    //вызывается, если логин прошёл успешно
+    private fun ShowLoginSuccess() {
+        //запуск MainActivity и завершение LoginActivity
         startActivity(Intent(this, MainActivity::class.java))
-        overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
+        finish()
+        //анимация запуска MainActivity
+        overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out)
     }
 
-    fun onLoginFailed() {
-        Toast.makeText(baseContext, "Login failed\nCheck username and password", Toast.LENGTH_LONG).show()
-
-        _loginButton!!.isEnabled = true
+    //вызывается, если логин прошёл с ошибкой
+    private fun ShowLoginFailed(occuredError: String) {
+        Toast.makeText(baseContext, "Login failed${occuredError}", Toast.LENGTH_LONG).show()
     }
 
-    fun validate(): Boolean {
-        var valid = true
-        var tried = false
+    //вызывается для проверки валидности введённого логина и пароля
+    private fun ValidateEmailAndPassword(): Boolean {
+        var isEmailAndPasswordValid = true
 
-        val email = _emailText!!.text.toString()
-        val password = _passwordText!!.text.toString()
-
-        //проверка на почту
+        //проверка почты
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText!!.error = "enter a valid email address"
-            valid = false
+            IEmailText.error = "enter a valid email address"
+            isEmailAndPasswordValid = false
         } else {
-            _emailText!!.error = null
+            IEmailText.error = null
         }
 
         //проверка пароля на длину
         if (password.isEmpty() || password.length < 6) {
-            _passwordText!!.error = "6 or more characters"
-            valid = false
+            IPasswordText.error = "6 or more characters"
+            isEmailAndPasswordValid = false
         } else {
-            _passwordText!!.error = null
+            IPasswordText.error = null
         }
 
-        return valid
-    }
-
-
-    companion object {
-        val TAG = "LoginActivity"
-        private val REQUEST_SIGNUP = 0
+        return isEmailAndPasswordValid
     }
 
     override fun onStart() {
         super.onStart()
 
-        // Check if user is signed in (non-null) and update UI accordingly.
-        val currentUser = auth.currentUser
+        //получаем текущего пользователя
+        val currentUser = authInFirebase.currentUser
 
-        Log.d(TAG, "User is ${currentUser.toString()}")
+        //если пользователь уже залогинен, то пропускаем экран логина
+        if(currentUser != null) {
+            Log.d(logTag, "User already logged in as ${currentUser.toString()}")
 
-        if(currentUser != null) startActivity(Intent(this, MainActivity::class.java))
-        overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
+            //запускаем MainActivity
+            startActivity(Intent(this, MainActivity::class.java))
+            //анимация запуска MainActivity
+            overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
+        }
+
     }
 
 

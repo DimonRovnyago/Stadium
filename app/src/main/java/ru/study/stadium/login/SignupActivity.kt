@@ -16,152 +16,159 @@ import com.google.firebase.auth.AuthResult
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import ru.study.stadium.MainActivity
 
 
 class SignupActivity : AppCompatActivity() {
+    //объявление переменных, отвечающих за объекты
+    private lateinit var INameText: EditText
+    private lateinit var IEmailText: EditText
+    private lateinit var IPasswordText: EditText
+    private lateinit var IReEnterPasswordText: EditText
+    lateinit var ISignupButton: Button
+    lateinit var ILoginLink: TextView
 
+    //переменные данных для регистрации
+    private var name = ""
+    private var email = ""
+    private var password = ""
+    private var reEnterPassword = ""
+
+    //переменные авторизации Firebase и базы данных Firestore Cloud
     private lateinit var auth: FirebaseAuth
-    val db = Firebase.firestore
+    private lateinit var firestoreCloudDB: FirebaseFirestore
 
-    var _nameText: EditText? = null
-    var _emailText: EditText? = null
-    var _passwordText: EditText? = null
-    var _reEnterPasswordText: EditText? = null
-    var _signupButton: Button? = null
-    var _loginLink: TextView? = null
+    //тэг в логах
+    val logTag = "LoginActivity"
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
 
+        //авторизация в Firebase и в Firestore
         auth = Firebase.auth
+        firestoreCloudDB = Firebase.firestore
 
-        _nameText = findViewById(R.id.input_name) as EditText
-        _emailText = findViewById(R.id.input_email) as EditText
-        _passwordText = findViewById(R.id.input_password) as EditText
-        _reEnterPasswordText = findViewById(R.id.input_reEnterPassword) as EditText
+        //инициализация всех объектов интерфейса
+        INameText = findViewById(R.id.input_name) as EditText
+        IEmailText = findViewById(R.id.input_email) as EditText
+        IPasswordText = findViewById(R.id.input_password) as EditText
+        IReEnterPasswordText = findViewById(R.id.input_reEnterPassword) as EditText
+        ISignupButton = findViewById(R.id.btn_signup) as Button
+        ILoginLink = findViewById(R.id.link_login) as TextView
 
-        _signupButton = findViewById(R.id.btn_signup) as Button
-        _loginLink = findViewById(R.id.link_login) as TextView
+        //действие на нажатие на кнопку "Создать аккаунт"
+        ISignupButton.setOnClickListener { Signup() }
 
-        _signupButton!!.setOnClickListener { signup() }
-
-        _loginLink!!.setOnClickListener {
-            // Finish the registration screen and return to the Login activity
-            val intent = Intent(applicationContext, LoginActivity::class.java)
-            startActivity(intent)
+        //действие на нажатие на ссылку логина
+        ILoginLink.setOnClickListener {
+            //запуск LoginActivity и завершение SignupActivity
+            startActivity(Intent(applicationContext, LoginActivity::class.java))
             finish()
+            //анимация запуска LoginActivity
             overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out)
         }
     }
 
-    fun signup() {
-        Log.d(TAG, "Signup started")
+    private fun Signup() {
+        Log.d(logTag, "Signup started")
 
-        //проверка почты и пароля на корректность
-        if (!validate()) {
-            onSignupFailed("")
+        //получаем имя, логин и пароль из полей ввода
+        name = INameText.text.toString()
+        email = IEmailText.text.toString()
+        password = IPasswordText.text.toString()
+        reEnterPassword = IReEnterPasswordText.text.toString()
+
+        //проверка имени, почты и пароля на корректность
+        if (!Validate()) {
+            ShowSignupFailed("")
             return
         }
 
-        //прогресс регистрации
-        val progressDialog = ProgressDialog(this@SignupActivity,
-            R.style.AppTheme_Dark_Dialog)
-        progressDialog.isIndeterminate = true
-        progressDialog.setMessage("Creating Account...")
-        progressDialog.show()
-
-        val name = _nameText!!.text.toString()
-        val email = _emailText!!.text.toString()
-        val password = _passwordText!!.text.toString()
+        //инициализация прогресс-бара регистрации
+        val ISignupProgressDialog = ProgressDialog(this, R.style.AppTheme_Dark_Dialog)
+        ISignupProgressDialog.isIndeterminate = true
+        ISignupProgressDialog.setMessage("Creating Account...")
+        ISignupProgressDialog.show()
 
         //проверка по базе
-        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { task ->
-            Log.d(LoginActivity.TAG, task.isSuccessful.toString())
-            Log.d(LoginActivity.TAG, "_______________________________________________")
-            progressDialog.dismiss()
-            if(task.isSuccessful) {
+        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(OnCompleteListener<AuthResult?> { signupResult ->
+            Log.d(logTag, "Is signup successful: ${signupResult.isSuccessful.toString()}")
 
-                _signupButton!!.isEnabled = false
+            //убираем прогресс-бар регистрации
+            ISignupProgressDialog.dismiss()
 
+            //если регистрация прошла успешно
+            if(signupResult.isSuccessful) {
                 //добавляем имя и email в базу
-                db.collection("users")
+                firestoreCloudDB.collection("users")
                     .document(email)
                     .set(hashMapOf(
                         "email" to email,
                         "name" to name,
                         "photo" to "no",
-                        "ship_bull_speed" to 500
                     ))
 
-                onSignupSuccess()
+                ShowSignupSuccess()
             }
-            else {
-                onSignupFailed("\nUser with this email already exists")
-            }
+            //если регистрация провалилась
+            else ShowSignupFailed("\nUser with this email already exists")
         })
     }
 
-
-    fun onSignupSuccess() {
-        _signupButton!!.isEnabled = true
-//        setResult(Activity.RESULT_OK, null)
-//        finish()
+    //вызывается, если регистрация аккаунта прошла успешно
+    private fun ShowSignupSuccess() {
+        //запуск MainActivity и завершение SignupActivity
         startActivity(Intent(this, MainActivity::class.java))
         finish()
+        //анимация запуска MainActivity
+        overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out)
     }
 
-    fun onSignupFailed(error: String) {
-        Toast.makeText(baseContext, "SignUp failed${error}", Toast.LENGTH_LONG).show()
-
-        _signupButton!!.isEnabled = true
+    //вызывается, если регистрация аккаунта провалилась
+    private fun ShowSignupFailed(occuredError: String) {
+        Toast.makeText(baseContext, "SignUp failed${occuredError}", Toast.LENGTH_LONG).show()
     }
 
-    //проверка почты и пароля на корректность
-    fun validate(): Boolean {
-        var valid = true
+    //вызывается для проверки валидности имени, введённого логина и пароля
+    private fun Validate(): Boolean {
+        var isNameAndEmailAndPasswordValid = true
 
-        val name = _nameText!!.text.toString()
-        val email = _emailText!!.text.toString()
-        val password = _passwordText!!.text.toString()
-        val reEnterPassword = _reEnterPasswordText!!.text.toString()
-
-
+        //проверка имени
         if (name.isEmpty()) {
-            _nameText!!.error = "Fill name"
-            valid = false
+            INameText.error = "Fill name"
+            isNameAndEmailAndPasswordValid = false
         } else {
-            _nameText!!.error = null
+            INameText.error = null
         }
 
+        //проверка почты
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText!!.error = "enter a valid email address"
-            valid = false
+            IEmailText.error = "enter a valid email address"
+            isNameAndEmailAndPasswordValid = false
         } else {
-            _emailText!!.error = null
+            IEmailText.error = null
         }
 
-        if (password.isEmpty() || password.length < 4 || password.length > 10) {
-            _passwordText!!.error = "between 4 and 10 alphanumeric characters"
-            valid = false
+        //проверка пароля на длину
+        if (password.isEmpty() || password.length < 6) {
+            IPasswordText.error = "6 or more characters"
+            isNameAndEmailAndPasswordValid = false
         } else {
-            _passwordText!!.error = null
+            IPasswordText.error = null
         }
 
-        if (reEnterPassword.isEmpty() || reEnterPassword.length < 4 || reEnterPassword.length > 10 || reEnterPassword != password) {
-            _reEnterPasswordText!!.error = "Password Do not match"
-            valid = false
+        //проверка повтора пароля
+        if (reEnterPassword != password) {
+            IReEnterPasswordText.error = "Password Do not match"
+            isNameAndEmailAndPasswordValid = false
         } else {
-            _reEnterPasswordText!!.error = null
+            IReEnterPasswordText.error = null
         }
 
-        return valid
-    }
-
-    companion object {
-        val TAG = "SignupActivity"
+        return isNameAndEmailAndPasswordValid
     }
 }

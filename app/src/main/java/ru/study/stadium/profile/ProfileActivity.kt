@@ -8,65 +8,73 @@ import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.net.toUri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import org.json.JSONArray
 import org.json.JSONObject
 import ru.study.stadium.login.LoginActivity
 
 class ProfileActivity : AppCompatActivity() {
+    //объявление переменных, отвечающих за объекты интерфейса
+    lateinit var IProfilePhotoImage: ImageView
+    lateinit var INameText: TextView
+    lateinit var ISignOutButton: Button
 
+    //переменные данных пользователя
+    private var name = ""
+    private var email = ""
+
+    //переменная авторизации Firebase и базы данных Firestore Cloud
     private lateinit var auth: FirebaseAuth
-    val db = Firebase.firestore
+    private lateinit var firestoreCloudDB: FirebaseFirestore
 
-    var profilePhotoImage: ImageView? = null
-    var nameText: TextView? = null
-    var signOutButton: Button? = null
-
-
-    var TAG = "MainActivity"
+    //тэг в логах
+    var logTag = "MainActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        profilePhotoImage = findViewById(R.id.profilePhotoImage) as ImageView
-        nameText = findViewById(R.id.nameText) as TextView;
-        nameText!!.setTextColor(Color.YELLOW)
-        signOutButton = findViewById(R.id.signOutButton) as Button
-
+        //авторизация в Firebase и в Firestore
         auth = Firebase.auth
-        db.collection("users")
-            .document(auth.currentUser!!.email.toString())
-            .get()
-            .addOnSuccessListener { result ->
-                Log.d(TAG, "${result.id} => ${result.data}")
-                var reply = JSONObject(result.data)
+        firestoreCloudDB = Firebase.firestore
 
-                var name = reply.getString("name")
-                var photo = reply.getString("photo")
+        //инициализация всех объектов интерфейса
+        IProfilePhotoImage = findViewById(R.id.profilePhotoImage) as ImageView
+        INameText = findViewById(R.id.nameText) as TextView;
+        ISignOutButton = findViewById(R.id.signOutButton) as Button
 
-                Log.d("JSON", name)
-                Log.d("JSON", photo)
+        //установка параметров объектов интерфейса
+        IProfilePhotoImage.setImageResource(R.mipmap.no_avatar)
+        //INameText!!.setTextColor(Color.YELLOW)
 
-                nameText!!.setText(name)
-                profilePhotoImage!!.setImageResource(R.mipmap.no_avatar)
-            }
-            .addOnFailureListener {exception ->
-                Log.w(TAG, "Error getting documents.", exception)
-            }
-
-
-
-        signOutButton!!.setOnClickListener {
+        //действие на нажатие на кнопку "Выйти"
+        ISignOutButton.setOnClickListener {
+            //выход из учетной записи на уровни Firebase
             auth.signOut()
+            //запуск LoginActivity и завершение ProfileActivity
             startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            //анимация запуска LoginActivity
             overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
         }
 
+        //получение параметров пользователя с базы данных
+        firestoreCloudDB.collection("users")
+            .document(auth.currentUser!!.email.toString())
+            .get()
+            .addOnSuccessListener { userData ->
+                val reply = JSONObject(userData.data)
 
+                name = reply.getString("name")
+
+                //установка данных пользователя в поля
+                INameText.setText(name)
+            }
+            .addOnFailureListener {exception ->
+                Log.w(logTag, "Error getting documents.", exception)
+            }
     }
 }
