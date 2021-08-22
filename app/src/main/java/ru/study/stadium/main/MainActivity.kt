@@ -1,69 +1,115 @@
 package ru.study.stadium
 
-import android.app.ActionBar
+
 import android.os.Bundle
 import android.app.ListActivity
+import android.content.ComponentName
+import android.content.Context
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ListView
-import android.widget.Toast
-import androidx.appcompat.widget.Toolbar
 import java.util.*
 import android.content.Intent
+import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toolbar
+import android.content.SharedPreferences
+import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import org.json.JSONObject
 
 
 class MainActivity : ListActivity() {
-    val GamesList = arrayOf(
-        "Корабли", "Военная газета", "Скоро",
-        "Скоро"
-    )
-
+    //объявление переменных, отвечающих за объекты интерфейса
     lateinit var gamesListView: ListView
-    lateinit var toolbar: Toolbar
+    lateinit var toolbar1: Toolbar
 
+    //переменная авторизации Firebase и базы данных Firestore Cloud
+    private lateinit var auth: FirebaseAuth
+    private lateinit var firestoreCloudDB: FirebaseFirestore
+
+    //список игр
+    val gamesList = arrayOf("Корабли", "Военная газета", "Скоро", "Скоро")
+
+    //служебные перемннные для отображения списка игр
     private var mAdapter: ArrayAdapter<String>? = null
-    private val GamesNamesList = ArrayList(listOf(*GamesList))
+    private val gamesNamesList = ArrayList(listOf(*gamesList))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main);
 
+        //авторизация в Firebase и в Firestore
+        auth = Firebase.auth
+        firestoreCloudDB = Firebase.firestore
+
+        //инициализация всех объектов интерфейса
         gamesListView = findViewById<ListView>(android.R.id.list) as ListView
-        toolbar = findViewById(R.id.toolbar) as Toolbar
+        toolbar1 = findViewById(R.id.toolbar) as Toolbar
 
-        toolbar.setTitle("Игры")
-        toolbar.setNavigationIcon(resources.getDrawable(R.drawable.back))
-        toolbar.setNavigationOnClickListener(View.OnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
-        })
+        //установка параметров объектов интерфейса
+        //настройка Toolbar
+        setActionBar(toolbar1)
+        actionBar?.title = "Игры"
 
 
-        mAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, GamesNamesList)
 
-        gamesListView.setAdapter(mAdapter);
+        //настройка adapter
+        mAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, gamesNamesList)
+        gamesListView.adapter = mAdapter;
+
+        Log.d("my", auth.currentUser!!.email.toString())
     }
 
     override fun onListItemClick(l: ListView, v: View, position: Int, ID: Long) {
         super.onListItemClick(l, v, position, ID)
-        Toast.makeText(applicationContext,
-            "Вы выбрали " + l.getItemAtPosition(position).toString(), Toast.LENGTH_SHORT
-        ).show()
+
+
+
+        when(position) {
+            0 -> {
+                Log.d("myLog", "started")
+                //получение параметров пользователя с базы данных
+                firestoreCloudDB.collection("shipwars")
+                    .document(auth.currentUser!!.email.toString())
+                    .get()
+                    .addOnSuccessListener { userData ->
+                        val reply = JSONObject(userData.data)
+                        var bull_speed = reply.getInt("bull_speed")
+                        Log.d("myLog", bull_speed.toString())
+                        var launchGameIntent = Intent()
+
+                        launchGameIntent.component = ComponentName(
+                            "ru.study.stadium.games.shipwars",
+                            "com.unity3d.player.UnityPlayerActivity"
+                        );
+                        launchGameIntent.putExtra("bull_speed", bull_speed.toString())
+                        startActivity(launchGameIntent);
+                    }
+            }
+        }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_back -> {
-            // User chose the "Settings" item, show the app settings UI...
-            startActivity(Intent(this, ProfileActivity::class.java))
-            true
-        }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val myIntent = Intent(applicationContext, ProfileActivity::class.java)
+        startActivity(myIntent)
 
-        else -> {
-            // If we got here, the user's action was not recognized.
-            // Invoke the superclass to handle it.
-            super.onOptionsItemSelected(item)
-        }
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+        //if(item.itemId == R.id.action_profile) startActivity(this, ProfileActivity::class.java)
+        return super.onOptionsItemSelected(item)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.menu_activity_main, menu)
+        return true
+    }
 
 }

@@ -18,7 +18,7 @@ import ru.study.stadium.login.LoginActivity
 
 class ProfileActivity : AppCompatActivity() {
     //объявление переменных, отвечающих за объекты интерфейса
-    lateinit var IProfilePhotoImage: ImageView
+    var IProfilePhotoImage: ImageView? = null
     lateinit var INameText: TextView
     lateinit var ISignOutButton: Button
 
@@ -35,7 +35,7 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_profile)
 
         //авторизация в Firebase и в Firestore
         auth = Firebase.auth
@@ -47,8 +47,8 @@ class ProfileActivity : AppCompatActivity() {
         ISignOutButton = findViewById(R.id.signOutButton) as Button
 
         //установка параметров объектов интерфейса
-        IProfilePhotoImage.setImageResource(R.mipmap.no_avatar)
-        //INameText!!.setTextColor(Color.YELLOW)
+        IProfilePhotoImage!!.setImageResource(R.mipmap.no_avatar)
+        INameText!!.setTextColor(Color.YELLOW)
 
         //действие на нажатие на кнопку "Выйти"
         ISignOutButton.setOnClickListener {
