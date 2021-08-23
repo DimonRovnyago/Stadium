@@ -3,8 +3,8 @@
 
     <item
         android:id="@+id/action_profile"
-        android:icon="@drawable/back"
+        android:icon="@drawable/profile"
         android:title="профиль"
-        app:showAsAction="always|ifRoom" />
+        android:showAsAction="always" />
 
 </menu>

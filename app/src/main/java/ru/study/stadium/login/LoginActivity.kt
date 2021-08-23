@@ -3,8 +3,12 @@ package ru.study.stadium.login
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -38,6 +42,9 @@ class LoginActivity : AppCompatActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            getWindow().getAttributes().layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES; }
         setContentView(R.layout.activity_login)
 
         //авторизация в Firebase
@@ -93,7 +100,7 @@ class LoginActivity : AppCompatActivity() {
             //если логин прошёл успешно
             if(loginResult.isSuccessful) ShowLoginSuccess()
             //если логин провалился
-            else ShowLoginFailed("Check email and password")
+            else ShowLoginFailed("\nCheck email and password")
         })
     }
 

@@ -4,7 +4,6 @@ package ru.study.stadium
 import android.os.Bundle
 import android.app.ListActivity
 import android.content.ComponentName
-import android.content.Context
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ListView
@@ -13,7 +12,6 @@ import android.content.Intent
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toolbar
-import android.content.SharedPreferences
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -21,12 +19,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import org.json.JSONObject
+import java.lang.Exception
 
 
 class MainActivity : ListActivity() {
     //объявление переменных, отвечающих за объекты интерфейса
     lateinit var gamesListView: ListView
-    lateinit var toolbar1: Toolbar
 
     //переменная авторизации Firebase и базы данных Firestore Cloud
     private lateinit var auth: FirebaseAuth
@@ -49,14 +47,11 @@ class MainActivity : ListActivity() {
 
         //инициализация всех объектов интерфейса
         gamesListView = findViewById<ListView>(android.R.id.list) as ListView
-        toolbar1 = findViewById(R.id.toolbar) as Toolbar
 
         //установка параметров объектов интерфейса
         //настройка Toolbar
-        setActionBar(toolbar1)
-        actionBar?.title = "Игры"
-
-
+        var actBar = getActionBar()
+        actBar?.title = "Игры"
 
         //настройка adapter
         mAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, gamesNamesList)
@@ -67,21 +62,26 @@ class MainActivity : ListActivity() {
 
     override fun onListItemClick(l: ListView, v: View, position: Int, ID: Long) {
         super.onListItemClick(l, v, position, ID)
-
-
-
         when(position) {
             0 -> {
-                Log.d("myLog", "started")
                 //получение параметров пользователя с базы данных
-                firestoreCloudDB.collection("shipwars")
-                    .document(auth.currentUser!!.email.toString())
+                firestoreCloudDB.collection("shipwars/${auth.currentUser!!.email.toString()}/ships")
+                    .document("Aurora")
                     .get()
                     .addOnSuccessListener { userData ->
-                        val reply = JSONObject(userData.data)
-                        var bull_speed = reply.getInt("bull_speed")
-                        Log.d("myLog", bull_speed.toString())
                         var launchGameIntent = Intent()
+                        var bull_speed = 500
+
+                        try {
+                            val reply = JSONObject(userData.data)
+                            bull_speed = reply.getInt("bull_speed")
+                        } catch (ex: Exception) {
+                            firestoreCloudDB.collection("shipwars/${auth.currentUser!!.email.toString()}/ships")
+                                .document("Aurora")
+                                .set(hashMapOf(
+                                    "bull_speed" to 500
+                                ))
+                        }
 
                         launchGameIntent.component = ComponentName(
                             "ru.study.stadium.games.shipwars",
