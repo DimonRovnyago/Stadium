@@ -13,6 +13,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import org.json.JSONObject
 import ru.study.stadium.MainActivity
+import java.lang.Exception
 
 
 class GameResultActivity : AppCompatActivity() {
@@ -48,9 +49,15 @@ class GameResultActivity : AppCompatActivity() {
             .document(auth.currentUser!!.email.toString())
             .get()
             .addOnSuccessListener { userData ->
-                val reply = JSONObject(userData.data)
-                var shotsS1 = reply.getInt("shotsS")
-                var shotsF1 = reply.getInt("shotsF")
+                var shotsS1 = 0
+                var shotsF1 = 0
+                try {
+                    val reply = JSONObject(userData.data)
+                    shotsS1 = reply.getInt("shotsS")
+                    shotsF1 = reply.getInt("shotsF")
+                } catch(ex: Exception) {
+
+                }
 
                 firestoreCloudDB.collection("shipwars")
                     .document(auth.currentUser!!.email.toString())

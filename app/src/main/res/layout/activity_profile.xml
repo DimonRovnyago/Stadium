@@ -43,8 +43,7 @@
         android:layout_height="408dp"
         app:layout_constraintBottom_toTopOf="@+id/signOutButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinner" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/emailText"
@@ -54,15 +53,6 @@
         android:text="@string/loading"
         app:layout_constraintStart_toStartOf="@+id/nameText"
         app:layout_constraintTop_toBottomOf="@+id/nameText" />
-
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="257dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="20dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profilePhotoImage" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

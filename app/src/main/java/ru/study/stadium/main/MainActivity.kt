@@ -30,8 +30,16 @@ class MainActivity : ListActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var firestoreCloudDB: FirebaseFirestore
 
+
+
     //список игр
-    val gamesList = arrayOf("Корабли", "Военная газета", "Скоро", "Скоро")
+    val gamesList = arrayOf(
+        "Ships",
+        "Newspapers",
+        "Coming soon...",
+        "Coming soon..."
+    )
+
 
     //служебные перемннные для отображения списка игр
     private var mAdapter: ArrayAdapter<String>? = null
@@ -51,7 +59,7 @@ class MainActivity : ListActivity() {
         //установка параметров объектов интерфейса
         //настройка Toolbar
         var actBar = getActionBar()
-        actBar?.title = "Игры"
+        actBar?.title = resources.getString(R.string.games)
 
         //настройка adapter
         mAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, gamesNamesList)

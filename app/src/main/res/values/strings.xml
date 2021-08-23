@@ -11,6 +11,11 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
 
+    <string name="games">Games</string>
+    <string name="ships">Ships</string>
+    <string name="newspaper">Newspapers</string>
+    <string name="soon">Coming soon...</string>
+
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
